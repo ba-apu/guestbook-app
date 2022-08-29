@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $PROJECT_NAME
+  namespace: $NAMESPACE
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: $PROJECT_NAME
+  template:
+    metadata:
+      annotations:
+        kubernetes.io/change-cause: $DOCKER_TAG
+      creationTimestamp: null
+      labels:
+        app: $PROJECT_NAME
+    spec:      
+#      volumes:
+#        - name: a2i-pv-data
+#          persistentVolumeClaim:
+#            claimName: a2i-prodclaim-claim       
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: $CONFIG_MAP
+        - secretRef:
+            name: $SECRET_REF
+        image: $DOCKER_TAG
+        imagePullPolicy: IfNotPresent
+#        livenessProbe:
+#          failureThreshold: 3
+#          httpGet:
+#            path: /serverstatus
+#            port: 80
+#            scheme: HTTP
+        name: $PROJECT_NAME
+        ports:
+        - containerPort: 80
+          name: guestbook-port
+          protocol: TCP
+#        readinessProbe:
+#          failureThreshold: 3
+#          httpGet:
+#            path: /serverstatus
+#            port: 80
+#            scheme: HTTP
+        resources:
+          limits:
+            cpu: "1"            
+            memory: 1Gi
+          requests:
+            cpu: 200m
+            memory: 1Gi
+#        volumeMounts:
+#         - name: a2i-pv-data
+#           mountPath: /var/www/html/public/uploads             
+      imagePullSecrets:
+      - name: hub.docker.com/repository/docker/apu3638/guestbook-app
+      restartPolicy: Always
